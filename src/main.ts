@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
+import store, { key } from './store'
+import persistent from './cache/persistent'
 
 import { IonicVue } from '@ionic/vue';
 
@@ -25,8 +27,13 @@ import './theme/variables.css';
 
 const app = createApp(App)
   .use(IonicVue)
-  .use(router);
-  
-router.isReady().then(() => {
-  app.mount('#app');
-});
+  .use(router)
+  .use(store, key);
+
+persistent.isReady()
+  //.then(()=>persistent.clear())
+  .then(()=>store.dispatch('initFromPersistentData'))
+  .then(()=>router.isReady())
+  .then(()=>{
+    app.mount('#app');
+  })
