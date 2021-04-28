@@ -17,7 +17,11 @@ module.exports = {
     'vue/no-deprecated-slot-attribute': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     'vue/no-unused-components':'warn',
-    '@typescript-eslint/interface-name-prefix':'off'
+    'prefer-const':'warn',
+    '@typescript-eslint/interface-name-prefix':'off',
+    '@typescript-eslint/ban-ts-ignore':'warn',
+    "camelcase": "off",
+    "@typescript-eslint/camelcase": 'warn'
   },
   overrides: [
     {
