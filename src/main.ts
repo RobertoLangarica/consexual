@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router';
 import store, { key } from './store'
 import persistent from './cache/persistent'
-
+import firebase from '@/firebase'
 import { IonicVue } from '@ionic/vue';
 
 /* Core CSS required for Ionic components to work properly */
@@ -30,9 +30,11 @@ const app = createApp(App)
   .use(router)
   .use(store, key);
 
+
 persistent.isReady()
-  //.then(()=>persistent.clear())
-  .then(()=>store.dispatch('initFromPersistentData'))
+  // .then(()=>persistent.clear())
+  .then(()=>firebase.initialize())
+  .then(()=>store.dispatch('init'))
   .then(()=>router.isReady())
   .then(()=>{
     app.mount('#app');
