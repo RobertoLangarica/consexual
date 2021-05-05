@@ -5,6 +5,8 @@ import store, { key } from './store'
 import persistent from './cache/persistent'
 import firebase from '@/firebase'
 import { IonicVue } from '@ionic/vue';
+import filesync from '@/filesync'
+import { registerComponents } from './components/getComponent';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
@@ -30,9 +32,10 @@ const app = createApp(App)
   .use(router)
   .use(store, key);
 
-
 persistent.isReady()
-  // .then(()=>persistent.clear())
+// .then(()=>persistent.clear())
+  .then(()=>registerComponents(app))
+  .then(()=>filesync.initFolders('avatar','images'))
   .then(()=>firebase.initialize())
   .then(()=>store.dispatch('init'))
   .then(()=>router.isReady())
