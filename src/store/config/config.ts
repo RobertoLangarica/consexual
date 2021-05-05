@@ -51,7 +51,23 @@ const useConfig = ()=>{
     }
 }
 
-export { useConfig }
+const useLanguage = ()=>{
+    const store = useStore()
+    return {
+        language: computed({
+            get:()=> store.getters['config/language'],
+            set: val => {
+                if(val !== 'es' && val !== 'wx'){
+                    throw new Error('Unknown language')
+                }
+                store.commit('config/language', val)
+
+            }
+        }),
+    }
+}
+
+export { useConfig, useLanguage }
 export default {
     namespaced: true,
     state,
