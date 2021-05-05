@@ -16,7 +16,7 @@ export default defineComponent({
     },
     emits:['select'],
     setup(props, {emit}) {
-        const onItemClick = (item)=>{
+        const onItemClick = (item: any)=>{
             emit('select', item)
         }
 
