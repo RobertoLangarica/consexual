@@ -10,7 +10,7 @@ export interface IGlobalState {
 
 const store = createStore<IGlobalState>({
     modules: {
-        config, activities, hairs:basicCollection('hairs')
+        config, activities
     },
     actions:{
         init({ dispatch}){
