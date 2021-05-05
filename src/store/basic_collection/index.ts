@@ -15,12 +15,12 @@ export interface IBasicCollection{
     unsubscribe: (() => void) | null;
 }
 
-const state: IBasicCollection = {
+const state = (): IBasicCollection=>({
     list:[],
     unsubscribe:null
-}
+})
 
-const mutations: MutationTree<IBasicCollection> = {
+const mutations = (): MutationTree<IBasicCollection>=>({
     replace(state, value: ICollectionItem){
         const index = state.list.findIndex(s=>s.id === value.id)
         if(index >= 0){
@@ -38,13 +38,13 @@ const mutations: MutationTree<IBasicCollection> = {
             state.list.splice(index, 1)
         } 
     }
-}
+})
 
-const getters: GetterTree<IBasicCollection, IGlobalState> = {
+const getters = (): GetterTree<IBasicCollection, IGlobalState> => ({
     byID: state => (id: string|number) =>{
         return state.list.find(s=>s.id === id)
     }
-}
+})
 
 const onError = (collection: string) => (e: any)=>{
     console.log(`Error on collection: ${collection}`,e)
@@ -70,7 +70,6 @@ const actions = (collection: string): ActionTree<IBasicCollection, IGlobalState>
     init({commit, state}){
         // Listening to firebase
         state.unsubscribe = firebase.db().collection(collection).onSnapshot({ error:onError(collection), next:onNext({commit})})
-        firebase.db().collection(collection).add
     }, 
     async put({commit}, document: any){
         try{
@@ -81,8 +80,36 @@ const actions = (collection: string): ActionTree<IBasicCollection, IGlobalState>
     },
     async patch({commit}, partial: ICollectionItem){
         try{
-            await firebase.db().collection(collection)
-                    .doc(partial.id).set(partial, {merge: true})
+            await firebase.db().collection(collection).doc(partial.id).set(partial, {merge: true})
+        }catch(e){
+            console.log(e)
+        }
+    },
+    async add({state, dispatch},document: ICollectionItem){
+        if(state.list.find((i: ICollectionItem)=>i.id === document.id)){
+            throw new Error(`A document with id: "${document.id}" already exists in collection: ${collection}`)
+        }
+        return dispatch(`put`,document)
+    },
+    async edit({state, dispatch},partial: ICollectionItem){
+        if(!state.list.find((i: ICollectionItem)=>i.id === partial.id)){
+            throw new Error(`There is no document with id: "${partial.id}" in collection: ${collection}`)
+        }
+        return dispatch(`patch`,partial)
+    },
+    async replace({state, dispatch},document: ICollectionItem){
+        if(!state.list.find((i: ICollectionItem)=>i.id === document.id)){
+            throw new Error(`There is no document with id: "${document.id}" in collection: ${collection}`)
+        }
+        return dispatch(`put`,document)
+    },
+    async remove({state}, id: string){
+        if(!state.list.find((i: ICollectionItem)=>i.id === id)){
+            throw new Error(`There is no document with id: "${id}" in collection: ${collection}`)
+        }
+
+        try{
+            await firebase.db().collection(collection).doc(id).delete()
         }catch(e){
             console.log(e)
         }
@@ -99,33 +126,19 @@ const actions = (collection: string): ActionTree<IBasicCollection, IGlobalState>
 const useCollection = (collection: string)=>{
     const store = useStore()
     return {
-        [collection]: computed(()=> (store.state as any)[collection]['list']),
-        add:(document: ICollectionItem)=>{
-            if((store.state as any)[collection]['list'].find((i: ICollectionItem)=>i.id === document.id)){
-                throw new Error(`A document with id: ${document} is already existing in collection: ${collection}`)
-            }
-            return store.dispatch(`${collection}/put`,document)
-        },
-        patch:(partial: ICollectionItem)=>{
-            if(!(store.state as any)[collection]['list'].find((i: ICollectionItem)=>i.id === document.id)){
-                throw new Error(`There is no document with id: ${document} in collection: ${collection}`)
-            }
-            return store.dispatch(`${collection}/patch`,partial)
-        },
-        replace:(document: ICollectionItem)=>{
-            if(!(store.state as any)[collection]['list'].find((i: ICollectionItem)=>i.id === document.id)){
-                throw new Error(`There is no document with id: ${document} in collection: ${collection}`)
-            }
-            return store.dispatch(`${collection}/put`,document)
-        },
+        [collection]:computed(()=>(store.state as any)[collection]['list']) as any,
+        add:(document: ICollectionItem)=>store.dispatch(`${collection}/add`,document),
+        edit:(partial: ICollectionItem)=>store.dispatch(`${collection}/edit`,partial),
+        replace:(document: ICollectionItem)=>store.dispatch(`${collection}/replace`,document),
+        remove:(id: string)=>store.dispatch(`${collection}/remove`,id),
     }
 }
 
 export {useCollection}
 export default (collectionName: string, extent: {state?: any;mutations?: any;actions?: any;getters?: any} = {})=>({
     namespaced: true,
-    state: Object.assign({},state, extent.state || {}),
-    mutations: Object.assign({},mutations, extent.mutations || {}),
+    state: Object.assign({},state(), extent.state || {}),
+    mutations: Object.assign({},mutations(), extent.mutations || {}),
     actions: Object.assign(actions(collectionName), extent.actions || {}),
-    getters: Object.assign({},getters, extent.getters || {}),
+    getters: Object.assign({},getters(), extent.getters || {}),
   })
