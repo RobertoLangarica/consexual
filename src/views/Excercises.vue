@@ -29,7 +29,7 @@ export default defineComponent({
         const currentActivity = ref<any|null>(null)
         const ready = computed(()=>!!currentActivity.value)
         const {language} = useConfig()
-        const {activities:list} = useActivities()
+        const {activities:raw_activities} = useActivities()
         const allowControls = ref(false)
         const allowBack = ref(false)
 
@@ -66,8 +66,7 @@ export default defineComponent({
                 nav.value!.$el.pop()
             }
         }
-
-        const stop = watch([list.value,nav], ([list,value]: any[])=>{
+        const stop = watch([raw_activities.value,nav], ([list,value]: any[])=>{
             if(list.length && value.$el){
                 activities.value = setTextsByLanguage(sortActivities(list), language.value)
                 next()
@@ -83,7 +82,7 @@ export default defineComponent({
             })
 
         provide('activity', currentActivity)
-        return {activities, ready, currentActivity, nav, allowControls, allowBack, list}
+        return {activities, ready, currentActivity, nav, allowControls, allowBack}
     },
 })
 </script>
