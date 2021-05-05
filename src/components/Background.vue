@@ -17,9 +17,9 @@ export default defineComponent({
     }
 })
 
-export const useBackground = (props: any)=>{
-    const color = computed(()=>props.background_color || 'black')
-    const vertical = computed(()=>!!props.background_vertical)
+export const useBackground = (params: any)=>{
+    const color = computed(()=>params.background_color || 'black')
+    const vertical = computed(()=>!!params.background_vertical)
 
     return {color, vertical}
 }
@@ -34,6 +34,7 @@ export const useBackground = (props: any)=>{
     right: 0px;
     left: 0px;
     z-index: -1;
+    overflow: hidden;
     background-color: white;
 }
 
